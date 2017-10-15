@@ -1,3 +1,4 @@
+import org.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
@@ -11,7 +12,7 @@ import java.util.List;
 
 public class Scraper {
 
-    List<ScrapedProduct> scrapedProducts = new ArrayList<ScrapedProduct>();
+    private List<ScrapedProduct> scrapedProducts = new ArrayList<ScrapedProduct>();
 
     public Scraper() {
     }
@@ -19,7 +20,10 @@ public class Scraper {
     public void scrap(String url) {
         String rawPage = getPage(url);
         Document parsedPage = Jsoup.parse(rawPage);
-        scrapedProducts.add(new ScrapedProduct(parsedPage));
+        String productData = parsedPage.getElementById("z-vegas-pdp-props").data();
+        productData = productData.replace("<![CDATA[", "").replace("]]>","");
+        JSONObject productJson = new JSONObject(productData);
+        scrapedProducts.add(new ScrapedProduct(productJson));
     }
 
     private String getPage(String pageUrl) {
