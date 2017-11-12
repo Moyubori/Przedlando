@@ -46,9 +46,11 @@ public class Scraper {
         if(PAGE_LIMIT < pages) {
             pages = PAGE_LIMIT;
         }
+        List<String> productUrls = null;
         for(int i = 0; i < pages; i++) {
-            List<String> productUrls = scrapProductUrls(baseUrl, catalogUrl + "?p=" + (i+1));
+            productUrls = scrapProductUrls(baseUrl, catalogUrl + "?p=" + (i+1));
         }
+        scrapProducts(baseUrl, productUrls);
     }
 
     private List<String> scrapProductUrls(String baseUrl, String catalogUrl) {
@@ -81,8 +83,15 @@ public class Scraper {
         return productUrls;
     }
 
-    private void scrapProduct(String url) {
-        String rawPage = getPage(url);
+    private void scrapProducts(String baseUrl, List<String> productUrls) {
+        for(String productUrl : productUrls) {
+            scrapProduct(baseUrl, productUrl);
+        }
+    }
+
+    private void scrapProduct(String baseUrl, String productUrl) {
+        System.out.println("Scraping product from " + baseUrl + productUrl + ".");
+        String rawPage = getPage(baseUrl + productUrl);
         Document parsedPage = Jsoup.parse(rawPage);
         String productData = parsedPage.getElementById("z-vegas-pdp-props").data();
         productData = productData.replace("<![CDATA[", "").replace("]]>","");
