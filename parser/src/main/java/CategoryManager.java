@@ -52,7 +52,6 @@ public class CategoryManager {
         response = response.replace(cutouts[1],"");
         response = response.replace("<id><![CDATA[","");
         response = response.replace("]]></id>","");
-        System.out.println("response id: " + response);
         return new Integer(response);
     }
 
