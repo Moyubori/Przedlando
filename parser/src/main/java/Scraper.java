@@ -9,19 +9,29 @@ import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.Authenticator;
 import java.net.HttpURLConnection;
+import java.net.PasswordAuthentication;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Scraper {
 
+    public static final boolean PRINT_XMLS = true;
+
     private static final int RETRY_LIMIT = 10;
     private static final int PAGE_LIMIT = 1;
 
     public static String API_URL = "http://localhost:8080/api";
+    private static String API_KEY = "IJP82WEE6LDEBZ7BJXYZQWLVSUZJLBUH";
 
     public static void main(String[] args) {
+        Authenticator.setDefault (new Authenticator() {
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication (API_KEY, "".toCharArray());
+            }
+        });
         CategoryManager.init();
         Scraper scraper = new Scraper("https://www.zalando.pl", "/okazje/");
     }
@@ -130,6 +140,9 @@ public class Scraper {
     }
 
     private void postProduct(String productXml) {
+        if(PRINT_XMLS) {
+            System.out.println(productXml);
+        }
         try {
             URL url = new URL(Scraper.API_URL + "/products");
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();

@@ -48,14 +48,18 @@ public class CategoryManager {
                      .append("</language></link_rewrite><id_parent>2</id_parent></category></prestashop>");
         String response = postCategory(stringBuilder.toString());
         String[] cutouts = response.split("<id><!\\[CDATA\\[[0-9]+\\]\\]><\\/id>");
-        response.replace(cutouts[0],"");
-        response.replace(cutouts[1],"");
-        response.replace("<id><![CDATA[","");
-        response.replace("]]></id>","");
+        response = response.replace(cutouts[0],"");
+        response = response.replace(cutouts[1],"");
+        response = response.replace("<id><![CDATA[","");
+        response = response.replace("]]></id>","");
+        System.out.println("response id: " + response);
         return new Integer(response);
     }
 
     private String postCategory(String xml) {
+        if(Scraper.PRINT_XMLS) {
+            System.out.println(xml);
+        }
         try {
             URL url = new URL(Scraper.API_URL + "/categories");
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
