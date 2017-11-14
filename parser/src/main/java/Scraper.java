@@ -18,7 +18,7 @@ import java.util.List;
 
 public class Scraper {
 
-    public static final boolean PRINT_XMLS = true;
+    public static final boolean PRINT_XMLS = false;
 
     private static final int RETRY_LIMIT = 10;
     private static final int PAGE_LIMIT = 1;
@@ -152,6 +152,15 @@ public class Scraper {
             try( DataOutputStream wr = new DataOutputStream( connection.getOutputStream())) {
                 wr.write( productXml.getBytes() );
             }
+            InputStream is = connection.getInputStream();
+            BufferedReader rd = new BufferedReader(new InputStreamReader(is));
+            StringBuffer response = new StringBuffer();
+            String line;
+            while ((line = rd.readLine()) != null) {
+                response.append(line);
+                response.append('\r');
+            }
+            rd.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
