@@ -56,11 +56,10 @@ public class CategoryManager {
     }
 
     private String postCategory(String xml) {
-        HttpURLConnection connection = null;
         try {
-            URL url = new URL(Main.API_URL + "/categories");
+            URL url = new URL(Scraper.API_URL + "/categories");
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setDoOutput(true);
-            connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("POST");
             connection.setRequestProperty( "Content-Type", "text/xml");
             try( DataOutputStream wr = new DataOutputStream( connection.getOutputStream())) {

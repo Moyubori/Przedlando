@@ -6,8 +6,10 @@ import org.jsoup.select.Elements;
 
 import javax.net.ssl.HttpsURLConnection;
 import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,7 +19,12 @@ public class Scraper {
     private static final int RETRY_LIMIT = 10;
     private static final int PAGE_LIMIT = 1;
 
-    private List<ScrapedProduct> scrapedProducts = new ArrayList<ScrapedProduct>();
+    public static String API_URL = "http://localhost:8080/api";
+
+    public static void main(String[] args) {
+        CategoryManager.init();
+        Scraper scraper = new Scraper("https://www.zalando.pl", "/okazje/");
+    }
 
     public Scraper(String baseUrl, String catalogUrl) {
         System.out.println("Scraping " + baseUrl + catalogUrl + ".");
@@ -96,7 +103,8 @@ public class Scraper {
         String productData = parsedPage.getElementById("z-vegas-pdp-props").data();
         productData = productData.replace("<![CDATA[", "").replace("]]>","");
         JSONObject productJson = new JSONObject(productData);
-        scrapedProducts.add(new ScrapedProduct(productJson));
+        ScrapedProduct product = new ScrapedProduct(productJson);
+        postProduct(product.toXml());
     }
 
     private String getPage(String pageUrl) {
@@ -118,6 +126,21 @@ public class Scraper {
         } catch (Exception e) {
             e.printStackTrace();
             return null;
+        }
+    }
+
+    private void postProduct(String productXml) {
+        try {
+            URL url = new URL(Scraper.API_URL + "/products");
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setDoOutput(true);
+            connection.setRequestMethod("POST");
+            connection.setRequestProperty( "Content-Type", "text/xml");
+            try( DataOutputStream wr = new DataOutputStream( connection.getOutputStream())) {
+                wr.write( productXml.getBytes() );
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

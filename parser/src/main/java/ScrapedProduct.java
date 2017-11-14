@@ -29,7 +29,6 @@ public class ScrapedProduct {
         price = articleInfo.getJSONObject("displayPrice").getJSONObject("price").getDouble("value");
         description = getDescription(articleInfo);
         categories = getCategories(articleInfo);
-        System.out.println(toXml());
     }
 
     private String getDescription(JSONObject articleInfo) {
@@ -55,7 +54,7 @@ public class ScrapedProduct {
         return categoriesMap;
     }
 
-    private String toXml() {
+    public String toXml() {
         StringBuilder xmlBuilder = new StringBuilder();
         xmlBuilder.append("<prestashop xmlns:xlink=\"http://www.w3.org/1999/xlink\"><product><active><![CDATA[1]]></active>")
                   .append("<name><language id=\"1\">").append(name).append("</language></name>")
