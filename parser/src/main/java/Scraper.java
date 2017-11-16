@@ -22,18 +22,19 @@ import java.util.List;
 
 public class Scraper {
 
-    public static final boolean PRINT_XMLS = true;
+    public static final boolean PRINT_XMLS = false;
 
     private static final int RETRY_LIMIT = 10;
-    private static final int PAGE_LIMIT = 1;
+    private static int PAGE_LIMIT = 1;
 
     public static String API_URL = "http://localhost:8080/api";
     private static String API_KEY = "IJP82WEE6LDEBZ7BJXYZQWLVSUZJLBUH";
 
     public static void main(String[] args) {
-        if(args.length == 2) {
+        if(args.length == 3) {
             API_URL = args[0];
             API_KEY = args[1];
+            PAGE_LIMIT = Integer.parseInt(args[2]);
         }
         Authenticator.setDefault (new Authenticator() {
             protected PasswordAuthentication getPasswordAuthentication() {
@@ -45,7 +46,7 @@ public class Scraper {
     }
 
     public Scraper(String baseUrl, String catalogUrl) {
-        System.out.println("Scraping " + baseUrl + catalogUrl + ".");
+        System.out.println("Scraping " + PAGE_LIMIT + " pages from " + baseUrl + catalogUrl + ".");
         int pages = 0;
         boolean scrapingSuccessfull = false;
         int retries = 0;
