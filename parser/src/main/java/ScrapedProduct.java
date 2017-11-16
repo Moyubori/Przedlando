@@ -70,7 +70,7 @@ public class ScrapedProduct {
 
     public String toXml() {
         StringBuilder xmlBuilder = new StringBuilder();
-        xmlBuilder.append("<prestashop xmlns:xlink=\"http://www.w3.org/1999/xlink\"><product><active><![CDATA[1]]></active>")
+        xmlBuilder.append("<prestashop xmlns:xlink=\"http://www.w3.org/1999/xlink\"><product><active><![CDATA[1]]></active><available_for_order>1</available_for_order><show_price>1</show_price><advanced_stock_management>1</advanced_stock_management>")
                   .append("<name><language id=\"1\">").append(name).append("</language></name>")
                   .append("<description><language id=\"1\">").append(description).append("</language></description>")
                   .append("<description_short><language id=\"1\">").append(description).append("</language></description_short>")
