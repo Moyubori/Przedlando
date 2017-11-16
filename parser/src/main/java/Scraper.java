@@ -1,3 +1,11 @@
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.mime.MultipartEntity;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.mime.content.InputStreamBody;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -5,20 +13,18 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import javax.net.ssl.HttpsURLConnection;
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.Authenticator;
 import java.net.HttpURLConnection;
 import java.net.PasswordAuthentication;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 
 public class Scraper {
 
-    public static final boolean PRINT_XMLS = false;
+    public static final boolean PRINT_XMLS = true;
 
     private static final int RETRY_LIMIT = 10;
     private static final int PAGE_LIMIT = 1;
@@ -114,7 +120,15 @@ public class Scraper {
         productData = productData.replace("<![CDATA[", "").replace("]]>","");
         JSONObject productJson = new JSONObject(productData);
         ScrapedProduct product = new ScrapedProduct(productJson);
-        postProduct(product.toXml());
+        String productId = postProduct(product.toXml());
+        List<String> imageUrls = product.getImageUrls();
+        for(String imageUrl : imageUrls) {
+            try {
+                postImage(imageUrl, productId);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     private String getPage(String pageUrl) {
@@ -139,7 +153,7 @@ public class Scraper {
         }
     }
 
-    private void postProduct(String productXml) {
+    private String postProduct(String productXml) {
         if(PRINT_XMLS) {
             System.out.println(productXml);
         }
@@ -161,9 +175,35 @@ public class Scraper {
                 response.append('\r');
             }
             rd.close();
+            return parseIdFromResponse(response.toString());
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return null;
+    }
+
+    private void postImage(String imageUrl, String productId) throws IOException {
+        URL url = new URL(imageUrl);
+        InputStream img = url.openStream();
+        HttpClient httpclient = new DefaultHttpClient();
+        byte[] apiKeyEncoded = Base64.getEncoder().encode((API_KEY + ":").getBytes());
+        HttpPost httpPost = new HttpPost(API_URL + "/images/products/" + productId);
+        httpPost.setHeader("Authorization", "Basic " + new String(apiKeyEncoded));
+        InputStreamBody inputStreamBody = new InputStreamBody(img, "img.jpg");
+        MultipartEntity reqEntity = new MultipartEntity();
+        reqEntity.addPart("image", inputStreamBody);
+        httpPost.setEntity(reqEntity);
+        HttpResponse response = httpclient.execute(httpPost);
+    }
+
+    private String parseIdFromResponse(String response) {
+        response = response.replaceAll("(\\r|\\t|\\n)", "");
+        String[] cutouts = response.split("<product><id><!\\[CDATA\\[[0-9]+\\]\\]><\\/id>");
+        response = response.replace(cutouts[0],"");
+        response = response.replace(cutouts[1],"");
+        response = response.replace("<product><id><![CDATA[","");
+        response = response.replace("]]></id>","");
+        return response;
     }
 
 }

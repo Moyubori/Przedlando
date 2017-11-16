@@ -22,6 +22,7 @@ public class ScrapedProduct {
     private double price;
     private String description;
     private Map<String, Integer> categories;
+    private List<String> imageUrls;
 
     public ScrapedProduct(JSONObject productData) {
         JSONObject articleInfo = productData.getJSONObject("model").getJSONObject("articleInfo");
@@ -29,6 +30,11 @@ public class ScrapedProduct {
         price = articleInfo.getJSONObject("displayPrice").getJSONObject("price").getDouble("value");
         description = getDescription(articleInfo);
         categories = getCategories(articleInfo);
+        imageUrls = new ArrayList<>();
+        JSONArray images = articleInfo.getJSONObject("media").getJSONArray("images");
+        for(int i = 0; i < images.length(); i++) {
+            imageUrls.add(images.getJSONObject(i).getJSONObject("sources").getString("color"));
+        }
     }
 
     private String getDescription(JSONObject articleInfo) {
@@ -54,6 +60,10 @@ public class ScrapedProduct {
         return categoriesMap;
     }
 
+    public List<String> getImageUrls() {
+        return imageUrls;
+    }
+
     public String toXml() {
         StringBuilder xmlBuilder = new StringBuilder();
         xmlBuilder.append("<prestashop xmlns:xlink=\"http://www.w3.org/1999/xlink\"><product><active><![CDATA[1]]></active>")
@@ -61,16 +71,16 @@ public class ScrapedProduct {
                   .append("<description><language id=\"1\">").append(description).append("</language></description>")
                   .append("<description_short><language id=\"1\">").append(description).append("</language></description_short>")
                   .append("<price>").append(price).append("</price>")
-                  .append("<categories>");
+                  .append("<id_category_default>").append("2").append("</id_category_default>")
+                  .append("<associations><categories>");
         for(Map.Entry<String, Integer> entry : categories.entrySet()) {
             xmlBuilder.append("<category><id>")
                       .append(entry.getValue())
                       .append("</id></category>");
         }
-        xmlBuilder.append("</categories>");
+        xmlBuilder.append("</categories></associations>");
         xmlBuilder.append("</product></prestashop>");
         return xmlBuilder.toString();
     }
-
 
 }
