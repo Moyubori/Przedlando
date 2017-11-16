@@ -33,7 +33,7 @@ public class ScrapedProduct {
         imageUrls = new ArrayList<>();
         JSONArray images = articleInfo.getJSONObject("media").getJSONArray("images");
         for(int i = 0; i < images.length(); i++) {
-            imageUrls.add(images.getJSONObject(i).getJSONObject("sources").getString("color"));
+            imageUrls.add(images.getJSONObject(i).getJSONObject("sources").getString("gallery"));
         }
     }
 
@@ -62,6 +62,10 @@ public class ScrapedProduct {
 
     public List<String> getImageUrls() {
         return imageUrls;
+    }
+
+    public double getPrice() {
+        return price;
     }
 
     public String toXml() {

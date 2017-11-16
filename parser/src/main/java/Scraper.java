@@ -2,10 +2,8 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.mime.MultipartEntity;
-import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.content.InputStreamBody;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.json.JSONArray;
 import org.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -33,6 +31,10 @@ public class Scraper {
     private static String API_KEY = "IJP82WEE6LDEBZ7BJXYZQWLVSUZJLBUH";
 
     public static void main(String[] args) {
+        if(args.length == 2) {
+            API_URL = args[0];
+            API_KEY = args[1];
+        }
         Authenticator.setDefault (new Authenticator() {
             protected PasswordAuthentication getPasswordAuthentication() {
                 return new PasswordAuthentication (API_KEY, "".toCharArray());
@@ -120,7 +122,10 @@ public class Scraper {
         productData = productData.replace("<![CDATA[", "").replace("]]>","");
         JSONObject productJson = new JSONObject(productData);
         ScrapedProduct product = new ScrapedProduct(productJson);
-        String productId = postProduct(product.toXml());
+        String response = postProduct(product.toXml());
+        String productId = parseProductIdFromResponse(response);
+        String stockAvailableId = parseStockAvailabeIdFromResponse(response);
+        postStockAvailable(productId, stockAvailableId);
         List<String> imageUrls = product.getImageUrls();
         for(String imageUrl : imageUrls) {
             try {
@@ -175,7 +180,7 @@ public class Scraper {
                 response.append('\r');
             }
             rd.close();
-            return parseIdFromResponse(response.toString());
+            return response.toString();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -196,12 +201,54 @@ public class Scraper {
         HttpResponse response = httpclient.execute(httpPost);
     }
 
-    private String parseIdFromResponse(String response) {
+    private void postStockAvailable(String productId, String stockAvailablesId) {
+        StringBuilder xmlBuilder = new StringBuilder();
+        xmlBuilder.append("<prestashop xmlns:xlink=\"http://www.w3.org/1999/xlink\"><stock_available><id_product>")
+                  .append(productId)
+                  .append("</id_product><depends_on_stock>0</depends_on_stock><out_of_stock>1</out_of_stock><id>")
+                  .append(stockAvailablesId)
+                .append("</id><id_product_attribute>0</id_product_attribute><quantity>")
+                .append(10)
+                .append("</quantity></stock_available></prestashop>");
+        try {
+            URL url = new URL(Scraper.API_URL + "/stock_availables/" + stockAvailablesId);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setDoOutput(true);
+            connection.setRequestMethod("PUT");
+            connection.setRequestProperty( "Content-Type", "text/xml");
+            try( DataOutputStream wr = new DataOutputStream( connection.getOutputStream())) {
+                wr.write( xmlBuilder.toString().getBytes() );
+            }
+            InputStream is = connection.getInputStream();
+            BufferedReader rd = new BufferedReader(new InputStreamReader(is));
+            StringBuffer response = new StringBuffer();
+            String line;
+            while ((line = rd.readLine()) != null) {
+                response.append(line);
+                response.append('\r');
+            }
+            rd.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private String parseProductIdFromResponse(String response) {
         response = response.replaceAll("(\\r|\\t|\\n)", "");
         String[] cutouts = response.split("<product><id><!\\[CDATA\\[[0-9]+\\]\\]><\\/id>");
         response = response.replace(cutouts[0],"");
         response = response.replace(cutouts[1],"");
         response = response.replace("<product><id><![CDATA[","");
+        response = response.replace("]]></id>","");
+        return response;
+    }
+
+    private String parseStockAvailabeIdFromResponse(String response) {
+        response = response.replaceAll("(\\r|\\t|\\n)", "");
+        String[] cutouts = response.split("<stock_available .+><id><!\\[CDATA\\[[0-9]+\\]\\]><\\/id>");
+        response = response.replace(cutouts[0],"");
+        response = response.replace(cutouts[1],"");
+        response = response.replaceAll("<stock_available .+><id><!\\[CDATA\\[","");
         response = response.replace("]]></id>","");
         return response;
     }
