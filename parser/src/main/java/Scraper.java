@@ -22,7 +22,7 @@ import java.util.List;
 
 public class Scraper {
 
-    public static final boolean PRINT_XMLS = true;
+    public static final boolean PRINT_XMLS = false;
 
     private static final int RETRY_LIMIT = 10;
     private static int PAGE_LIMIT = 1;
@@ -74,7 +74,7 @@ public class Scraper {
         }
         List<String> productUrls = null;
         for(int i = 0; i < pages; i++) {
-            productUrls = scrapProductUrls(baseUrl, catalogUrl + "?p=" + (i+1));
+            productUrls.addAll(scrapProductUrls(baseUrl, catalogUrl + "?p=" + (i+1)));
         }
         scrapProducts(baseUrl, productUrls);
     }
