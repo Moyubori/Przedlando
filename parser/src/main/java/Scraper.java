@@ -72,7 +72,7 @@ public class Scraper {
         if(PAGE_LIMIT < pages) {
             pages = PAGE_LIMIT;
         }
-        List<String> productUrls = null;
+        List<String> productUrls = new ArrayList<>();
         for(int i = 0; i < pages; i++) {
             productUrls.addAll(scrapProductUrls(baseUrl, catalogUrl + "?p=" + (i+1)));
         }
