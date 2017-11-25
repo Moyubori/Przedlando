@@ -28,7 +28,7 @@ public class Scraper {
     private static int PAGE_LIMIT = 1;
 
     public static String API_URL = "http://localhost:8080/api";
-    private static String API_KEY = "IJP82WEE6LDEBZ7BJXYZQWLVSUZJLBUH";
+    private static String API_KEY = "12345678901234567890123456789012";
 
     public static void main(String[] args) {
         if(args.length == 3) {
@@ -206,7 +206,7 @@ public class Scraper {
         StringBuilder xmlBuilder = new StringBuilder();
         xmlBuilder.append("<prestashop xmlns:xlink=\"http://www.w3.org/1999/xlink\"><stock_available><id_product>")
                   .append(productId)
-                  .append("</id_product><depends_on_stock>0</depends_on_stock><out_of_stock>1</out_of_stock><id>")
+                  .append("</id_product><id_shop>1</id_shop><depends_on_stock>0</depends_on_stock><out_of_stock>1</out_of_stock><id>")
                   .append(stockAvailablesId)
                 .append("</id><id_product_attribute>0</id_product_attribute><quantity>")
                 .append(10)

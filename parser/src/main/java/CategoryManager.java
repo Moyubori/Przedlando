@@ -5,10 +5,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.net.URLEncoder;
+import java.util.*;
 
 public class CategoryManager {
 
@@ -19,33 +17,61 @@ public class CategoryManager {
     public static void init() {
         if(instance == null) {
             instance = new CategoryManager();
+            instance._init();
         }
-
     }
 
-    private Map<String,Integer> categories = new HashMap<>();
+    Map<Integer, List<String>> categories = new HashMap<>();
+
+    public void _init() {
+        Integer m = addCategory("Mężczyźni");
+        Integer w = addCategory("Kobiety");
+        Integer k = addCategory("Dzieci");
+        categories.put(m, Arrays.asList("mezczyzni","meskie"));
+        categories.put(w, Arrays.asList("kobiety", "damska"));
+        categories.put(addCategory("Odzież", m), Arrays.asList("odziez-damska"));
+        categories.put(addCategory("Odzież", w), Arrays.asList("odziez-meska"));
+        categories.put(addCategory("Odzież", k), Arrays.asList("odziez-dziecieca"));
+        categories.put(addCategory("Obuwie", m), Arrays.asList("obuwie-damskie"));
+        categories.put(addCategory("Obuwie", w), Arrays.asList("obuwie-meskie"));
+        categories.put(addCategory("Obuwie", k), Arrays.asList("obuwie-dzieciece"));
+        categories.put(addCategory("Sport", m), Arrays.asList("sport-kobiety"));
+        categories.put(addCategory("Sport", w), Arrays.asList("sport-mezczyzni"));
+        categories.put(addCategory("Sport", k), Arrays.asList("sport-dzieci"));
+        categories.put(addCategory("Akcesoria", m), Arrays.asList("mezczyzni-akcesoria"));
+        categories.put(addCategory("Akcesoria", w), Arrays.asList("kobiety-akcesoria"));
+        categories.put(addCategory("Akcesoria", k), Arrays.asList("dzieci-akcesoria"));
+        categories.put(addCategory("Bielizna", m), Arrays.asList("odziez-damska-bielizna"));;
+        categories.put(addCategory("Bielizna", w), Arrays.asList("odziez-meska-bielizna"));
+        categories.put(addCategory("Bielizna", k), Arrays.asList("odziez-dziecieca-bielizna"));
+    }
 
     public static Integer getCategoryId(String category) {
         return instance._getCategoryId(category);
     }
 
     public Integer _getCategoryId(String category) {
-        if(categories.containsKey(category)) {
-            return categories.get(category);
-        } else {
-            Integer categoryId = addCategory(category);
-            categories.put(category, categoryId);
-            return categoryId;
+        for(Map.Entry<Integer,List<String>> entry : categories.entrySet()) {
+            if(entry.getValue().contains(category)) {
+                return entry.getKey();
+            }
         }
+        return null;
     }
 
     private Integer addCategory(String category) {
+        return addCategory(category, 2);
+    }
+
+    private Integer addCategory(String category, int parentCategory) {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("<prestashop xmlns:xlink=\"http://www.w3.org/1999/xlink\"><category><active><![CDATA[1]]></active><name><language id=\"1\">")
                      .append(category)
                      .append("</language></name><link_rewrite><language id=\"1\">")
-                     .append(category)
-                     .append("</language></link_rewrite><id_parent>2</id_parent></category></prestashop>");
+                     .append(URLEncoder.encode(category).replace("%",""))
+                     .append("</language></link_rewrite><id_parent>")
+                     .append(parentCategory)
+                     .append("</id_parent></category></prestashop>");
         String response = postCategory(stringBuilder.toString());
         String[] cutouts = response.split("<id><!\\[CDATA\\[[0-9]+\\]\\]><\\/id>");
         response = response.replace(cutouts[0],"");
