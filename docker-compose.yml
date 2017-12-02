@@ -1,0 +1,13 @@
+version: '3'
+services:
+    przedlando-mysql-f:
+     build: ./przedlando-mysql-f
+     environment:
+      - MYSQL_ROOT_PASSWORD=admin
+      - MYSQL_DATABASE=prestashop
+    przedlando-prestashop-f:
+     build: .
+     ports:
+      - 8080:80
+     links:
+      - przedlando-mysql-f
