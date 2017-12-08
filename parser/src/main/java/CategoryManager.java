@@ -26,24 +26,46 @@ public class CategoryManager {
     public void _init() {
         Integer m = addCategory("Mężczyźni");
         Integer w = addCategory("Kobiety");
-        Integer k = addCategory("Dzieci");
-        categories.put(m, Arrays.asList("mezczyzni","meskie"));
-        categories.put(w, Arrays.asList("kobiety", "damska"));
-        categories.put(addCategory("Odzież", m), Arrays.asList("odziez-damska"));
-        categories.put(addCategory("Odzież", w), Arrays.asList("odziez-meska"));
-        categories.put(addCategory("Odzież", k), Arrays.asList("odziez-dziecieca"));
-        categories.put(addCategory("Obuwie", m), Arrays.asList("obuwie-damskie"));
-        categories.put(addCategory("Obuwie", w), Arrays.asList("obuwie-meskie"));
-        categories.put(addCategory("Obuwie", k), Arrays.asList("obuwie-dzieciece"));
-        categories.put(addCategory("Sport", m), Arrays.asList("sport-kobiety"));
-        categories.put(addCategory("Sport", w), Arrays.asList("sport-mezczyzni"));
-        categories.put(addCategory("Sport", k), Arrays.asList("sport-dzieci"));
-        categories.put(addCategory("Akcesoria", m), Arrays.asList("mezczyzni-akcesoria"));
-        categories.put(addCategory("Akcesoria", w), Arrays.asList("kobiety-akcesoria"));
-        categories.put(addCategory("Akcesoria", k), Arrays.asList("dzieci-akcesoria"));
-        categories.put(addCategory("Bielizna", m), Arrays.asList("odziez-damska-bielizna"));;
-        categories.put(addCategory("Bielizna", w), Arrays.asList("odziez-meska-bielizna"));
-        categories.put(addCategory("Bielizna", k), Arrays.asList("odziez-dziecieca-bielizna"));
+        categories.put(m, Arrays.asList("m"));
+        categories.put(w, Arrays.asList("w"));
+        {
+            Integer ow = addCategory("Odzież", w);
+            categories.put(ow, Arrays.asList("ow"));
+            {
+                categories.put(addCategory("Kurtki",ow), Arrays.asList("owkurtki"));
+                categories.put(addCategory("Bluzy",ow), Arrays.asList("owbluzy"));
+                categories.put(addCategory("Koszulki",ow), Arrays.asList("owkoszulki"));
+                categories.put(addCategory("Spodnie",ow), Arrays.asList("owspodnie"));
+            }
+            Integer om = addCategory("Odzież", m);
+            categories.put(om, Arrays.asList("om"));
+            {
+                categories.put(addCategory("Kurtki",om), Arrays.asList("omkurtki"));
+                categories.put(addCategory("Bluzy",om), Arrays.asList("ombluzy"));
+                categories.put(addCategory("Koszulki",om), Arrays.asList("omkoszulki"));
+                categories.put(addCategory("Spodnie",om), Arrays.asList("omspodnie"));
+            }
+            Integer sw = addCategory("Obuwie", w);
+            categories.put(sw, Arrays.asList("sw"));
+            Integer sm = addCategory("Obuwie", m);
+            categories.put(sm, Arrays.asList("sm"));
+            Integer aw = addCategory("Akcesoria", w);
+            categories.put(aw, Arrays.asList("aw"));
+            {
+                categories.put(addCategory("Torby",aw), Arrays.asList("awtorby"));
+                categories.put(addCategory("Portfele",aw), Arrays.asList("awportfele"));
+                categories.put(addCategory("Zegarki",aw), Arrays.asList("awzegarki"));
+                categories.put(addCategory("Czapki",aw), Arrays.asList("awczapki"));
+            }
+            Integer am = addCategory("Akcesoria", m);
+            categories.put(am, Arrays.asList("am"));
+            {
+                categories.put(addCategory("Torby",am), Arrays.asList("amtorby"));
+                categories.put(addCategory("Portfele",am), Arrays.asList("amportfele"));
+                categories.put(addCategory("Zegarki",am), Arrays.asList("amzegarki"));
+                categories.put(addCategory("Czapki",am), Arrays.asList("amczapki"));
+            }
+        }
     }
 
     public static Integer getCategoryId(String category) {

@@ -40,14 +40,17 @@ public class ScrapedProduct {
     }
 
     private Map<String, Integer> getCategories(JSONObject articleInfo) {
-        JSONArray categoriesJson = articleInfo.getJSONArray("categories");
+//        JSONArray categoriesJson = articleInfo.getJSONArray("categories");
         Map<String, Integer> categoriesMap = new HashMap<>();
-        for(int i = 0; i < categoriesJson.length(); i++) {
-            String category = categoriesJson.getString(i);
-            Integer categoryId = CategoryManager.getCategoryId(category);
-            if(categoryId != null) {
-                categoriesMap.put(category, categoryId);
-            }
+//        for(int i = 0; i < categoriesJson.length(); i++) {
+//            String category = categoriesJson.getString(i);
+//            Integer categoryId = CategoryManager.getCategoryId(category);
+//            if(categoryId != null) {
+//                categoriesMap.put(category, categoryId);
+//            }
+//        }
+        for(String category : Scraper.currentCategories) {
+            categoriesMap.put(category, CategoryManager.getCategoryId(category));
         }
         return categoriesMap;
     }

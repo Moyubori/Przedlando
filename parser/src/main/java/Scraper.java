@@ -16,9 +16,7 @@ import java.net.Authenticator;
 import java.net.HttpURLConnection;
 import java.net.PasswordAuthentication;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.List;
+import java.util.*;
 
 public class Scraper {
 
@@ -30,11 +28,45 @@ public class Scraper {
     public static String API_URL = "http://localhost:8080/api";
     private static String API_KEY = "12345678901234567890123456789012";
 
+    private static final Map<String, List<String>> categoryAddressMap;
+    static {
+        categoryAddressMap = new HashMap<>();
+        categoryAddressMap.put("odziez-meska-kurtki/", Arrays.asList("m","om","omkurtki"));
+        categoryAddressMap.put("odziez-meska-bluzy-kardigany/", Arrays.asList("m","om","ombluzy"));
+        categoryAddressMap.put("odziez-meska-koszulki/", Arrays.asList("m","om","omkoszulki"));
+        categoryAddressMap.put("odziez-meska-spodnie/", Arrays.asList("m","om","omspodnie"));
+        categoryAddressMap.put("odziez-damska-kurtki/", Arrays.asList("w","ow","owkurtki"));
+        categoryAddressMap.put("odziez-damska-bluzki-tuniki/", Arrays.asList("w","ow","owbluzy"));
+        categoryAddressMap.put("odziez-damska-koszulki/", Arrays.asList("w","ow","owkoszulki"));
+        categoryAddressMap.put("odziez-damska-spodnie/", Arrays.asList("w","ow","owspodnie"));
+        categoryAddressMap.put("akcesoria-torby-kobiety/", Arrays.asList("w","aw","awtorby"));
+        categoryAddressMap.put("portfele-etui-kobiety/", Arrays.asList("w","aw","awportfele"));
+        categoryAddressMap.put("zegarki-kobiety/", Arrays.asList("w","aw","awzegarki"));
+        categoryAddressMap.put("czapki-kapelusze-kobiety/", Arrays.asList("w","aw","awczapki"));
+        categoryAddressMap.put("czapki-kapelusze-mezczyzni/", Arrays.asList("m","am","amczapki"));
+        categoryAddressMap.put("zegarki-mezczyzni/", Arrays.asList("m","am","amzegarki"));
+        categoryAddressMap.put("portfele-etui-mezczyzni/", Arrays.asList("m","am","amportfele"));
+        categoryAddressMap.put("akcesoria-torby-mezczyzni/", Arrays.asList("m","am","amtorby"));
+        categoryAddressMap.put("obuwie-meskie/", Arrays.asList("m","sm"));
+        categoryAddressMap.put("obuwie-damskie/", Arrays.asList("w","sw"));
+    }
+    private static final String baseUrl = "https://www.zalando.pl/";
+
+    public static List<String> currentCategories = null;
+
+    private static int skipCategories = 0;
+
     public static void main(String[] args) {
         if(args.length == 3) {
             API_URL = args[0];
             API_KEY = args[1];
             PAGE_LIMIT = Integer.parseInt(args[2]);
+        }
+        if(args.length == 4) {
+            API_URL = args[0];
+            API_KEY = args[1];
+            PAGE_LIMIT = Integer.parseInt(args[2]);
+            skipCategories = Integer.parseInt(args[3]);
         }
         Authenticator.setDefault (new Authenticator() {
             protected PasswordAuthentication getPasswordAuthentication() {
@@ -42,41 +74,51 @@ public class Scraper {
             }
         });
         CategoryManager.init();
-        Scraper scraper = new Scraper("https://www.zalando.pl", "/okazje/");
+        Scraper scraper = new Scraper();
     }
 
-    public Scraper(String baseUrl, String catalogUrl) {
-        System.out.println("Scraping " + PAGE_LIMIT + " pages from " + baseUrl + catalogUrl + ".");
-        int pages = 0;
-        boolean scrapingSuccessfull = false;
-        int retries = 0;
-        while(!scrapingSuccessfull) {
-            if(retries > RETRY_LIMIT) {
-                throw new NullPointerException("Can't scrape page " + baseUrl + catalogUrl + ". Retry limit exceeded.");
+    public Scraper() {
+        int categoriesParsed = 0;
+        for(Map.Entry<String,List<String>> entry : categoryAddressMap.entrySet()) {
+            if(categoriesParsed < skipCategories) {
+                categoriesParsed++;
+                continue;
             }
-            try {
-                String pageContents = getPage(baseUrl + catalogUrl);
-                Document parsedPage = Jsoup.parse(pageContents);
-                Elements elements = parsedPage.getElementsByClass("z-nvg-cognac_label-2W3Y8");
-                Element element = elements.first();
-                String str = element.text();
-                pages = Integer.parseInt(str.replaceFirst(".+[z ]",""));
-                System.out.println("Found " + pages + " pages.");
-                scrapingSuccessfull = true;
-            } catch (NullPointerException e) {
-                System.out.println("Couldn't scrap " + baseUrl + catalogUrl + ". Trying again...");
-                retries++;
-                scrapingSuccessfull = false;
+            categoriesParsed++;
+            String catalogUrl = entry.getKey();
+            currentCategories = entry.getValue();
+            System.out.println(categoriesParsed + ". Scraping " + PAGE_LIMIT + " pages from " + baseUrl + catalogUrl + ".");
+            int pages = 0;
+            boolean scrapingSuccessfull = false;
+            int retries = 0;
+            while(!scrapingSuccessfull) {
+                if(retries > RETRY_LIMIT) {
+                    throw new NullPointerException("Can't scrape page " + baseUrl + catalogUrl + ". Retry limit exceeded.");
+                }
+                try {
+                    String pageContents = getPage(baseUrl + catalogUrl);
+                    Document parsedPage = Jsoup.parse(pageContents);
+                    Elements elements = parsedPage.getElementsByClass("z-nvg-cognac_label-2W3Y8");
+                    Element element = elements.first();
+                    String str = element.text();
+                    pages = Integer.parseInt(str.replaceFirst(".+[z ]",""));
+                    System.out.println("Found " + pages + " pages.");
+                    scrapingSuccessfull = true;
+                } catch (NullPointerException e) {
+                    System.out.println("Couldn't scrap " + baseUrl + catalogUrl + ". Trying again...");
+                    retries++;
+                    scrapingSuccessfull = false;
+                }
             }
+            if(PAGE_LIMIT < pages) {
+                pages = PAGE_LIMIT;
+            }
+            List<String> productUrls = new ArrayList<>();
+            for(int i = 0; i < pages; i++) {
+                productUrls.addAll(scrapProductUrls(baseUrl, catalogUrl + "?p=" + (i+1)));
+            }
+            scrapProducts(baseUrl, productUrls);
         }
-        if(PAGE_LIMIT < pages) {
-            pages = PAGE_LIMIT;
-        }
-        List<String> productUrls = new ArrayList<>();
-        for(int i = 0; i < pages; i++) {
-            productUrls.addAll(scrapProductUrls(baseUrl, catalogUrl + "?p=" + (i+1)));
-        }
-        scrapProducts(baseUrl, productUrls);
     }
 
     private List<String> scrapProductUrls(String baseUrl, String catalogUrl) {
@@ -183,9 +225,14 @@ public class Scraper {
             rd.close();
             return response.toString();
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println("Error. Retrying...");
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e1) {
+                e1.printStackTrace();
+            }
+            return postProduct(productXml);
         }
-        return null;
     }
 
     private void postImage(String imageUrl, String productId) throws IOException {
