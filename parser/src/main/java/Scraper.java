@@ -166,16 +166,20 @@ public class Scraper {
         JSONObject productJson = new JSONObject(productData);
         ScrapedProduct product = new ScrapedProduct(productJson);
         String response = postProduct(product.toXml());
-        String productId = parseProductIdFromResponse(response);
-        String stockAvailableId = parseStockAvailabeIdFromResponse(response);
-        postStockAvailable(productId, stockAvailableId);
-        List<String> imageUrls = product.getImageUrls();
-        for(String imageUrl : imageUrls) {
-            try {
-                postImage(imageUrl, productId);
-            } catch (IOException e) {
-                e.printStackTrace();
+        if(response != null) {
+            String productId = parseProductIdFromResponse(response);
+            String stockAvailableId = parseStockAvailabeIdFromResponse(response);
+            postStockAvailable(productId, stockAvailableId);
+            List<String> imageUrls = product.getImageUrls();
+            for (String imageUrl : imageUrls) {
+                try {
+                    postImage(imageUrl, productId);
+                } catch (IOException e) {
+                    System.out.println("Posting image failed.");
+                }
             }
+        } else {
+            System.out.println("Scraping failed.");
         }
     }
 
@@ -196,8 +200,8 @@ public class Scraper {
             rd.close();
             return response.toString();
         } catch (Exception e) {
-            e.printStackTrace();
-            return null;
+            System.out.println("Scraping page " + pageUrl + " failed. Retrying...");
+            return getPage(pageUrl);
         }
     }
 
@@ -225,13 +229,8 @@ public class Scraper {
             rd.close();
             return response.toString();
         } catch (Exception e) {
-            System.out.println("Error. Retrying...");
-            try {
-                Thread.sleep(500);
-            } catch (InterruptedException e1) {
-                e1.printStackTrace();
-            }
-            return postProduct(productXml);
+            System.out.println("Posting product failed.");
+            return null;
         }
     }
 
@@ -277,7 +276,7 @@ public class Scraper {
             }
             rd.close();
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println("Posting stock_available failed.");
         }
     }
 

@@ -127,8 +127,8 @@ public class CategoryManager {
             rd.close();
             return response.toString();
         } catch (Exception e) {
-            e.printStackTrace();
-            return null;
+            System.out.println("Posting category failed. Retrying...");
+            return postCategory(xml);
         }
     }
 
