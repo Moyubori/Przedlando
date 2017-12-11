@@ -54,20 +54,15 @@ public class Scraper {
 
     public static List<String> currentCategories = null;
 
-    private static int skipCategories = 0;
-
     public static void main(String[] args) {
         if(args.length == 3) {
             API_URL = args[0];
             API_KEY = args[1];
             PAGE_LIMIT = Integer.parseInt(args[2]);
         }
-        if(args.length == 4) {
-            API_URL = args[0];
-            API_KEY = args[1];
-            PAGE_LIMIT = Integer.parseInt(args[2]);
-            skipCategories = Integer.parseInt(args[3]);
-        }
+        System.out.println("API URL set to " + API_URL);
+        System.out.println("API KEY set to " + API_KEY);
+        System.out.println("PAGE LIMIT set to " + PAGE_LIMIT);
         Authenticator.setDefault (new Authenticator() {
             protected PasswordAuthentication getPasswordAuthentication() {
                 return new PasswordAuthentication (API_KEY, "".toCharArray());
@@ -80,10 +75,6 @@ public class Scraper {
     public Scraper() {
         int categoriesParsed = 0;
         for(Map.Entry<String,List<String>> entry : categoryAddressMap.entrySet()) {
-            if(categoriesParsed < skipCategories) {
-                categoriesParsed++;
-                continue;
-            }
             categoriesParsed++;
             String catalogUrl = entry.getKey();
             currentCategories = entry.getValue();
