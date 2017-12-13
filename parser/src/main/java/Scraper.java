@@ -20,7 +20,7 @@ import java.util.*;
 
 public class Scraper {
 
-    public static final boolean PRINT_XMLS = false;
+    public static final boolean PRINT_XMLS = true;
 
     private static final int RETRY_LIMIT = 10;
     private static int PAGE_LIMIT = 1;
